@@ -156,7 +156,7 @@ def main(subject):
     time_old = time.time()
     
     #group by key. Using reduce. Because groupby is not recommended in spark documentation
-    groups = values.reduceByKey(lambda x:xyz_group(x,subject))
+    groups = values.reduceByKey(lambda x,y:xyz_group(x,y,subject))
     print 'groups finished'
     #print groups.first()
     #print 'group obtain time:',time.time()-time_now
@@ -173,11 +173,10 @@ def main(subject):
     parsedData.cache()
     print 'parsed data'
 
-
-
     #print parsedData.first()
     #print 'parsed data obtain time:',time.time()-time_now
     time_now = time.time()
+    
     #now we have xyz -> group of features
     #and we are ready to cluster. 
     # Build the model (cluster the data)
@@ -229,14 +228,17 @@ def main(subject):
 
     #get top clusters to split again
     top_clusters = [item[0] for item in cluster_sizes if item[1]>200]
+    #cluster_point_distance.unpersist()
+
 
     #now we got the top 10 clusters. For each cluster, we will split 50 again. 
     for top_cluster in top_clusters:
         top_data = parsedData.filter(lambda point:clusters.predict(point)==top_cluster)
-
+        top_data.persist()
         #now temp_data has all filtered by top_cluster. 
         #Now we are going to cluster it. 
         top_model = KMeans.train(top_data, sub_k, maxIterations=100,runs=10, initializationMode="k-means||")
+        
         #top_data_point_distance = top_data.map(lambda point:error_by_center(point,top_model))
         #top_data_point_distance.persist()
         
@@ -257,7 +259,7 @@ def main(subject):
         max_point_distance = cluster_point_distance.reduceByKey(lambda x,y:max(x,y)).collect()
         save_cluster_sizes(max_point_distance,'max_point_distance/'+str(subject)+'_'+str(top_cluster)+'.csv')
         print 'finished top cluster',top_cluster
-        
+        top_data.unpersist() 
 
     #save as text file to clusterCenters in hdfs
     print 'save cluster center',time.time()-time_now
@@ -269,4 +271,4 @@ if __name__=='__main__':
         print 'invalid parameters'
         print 'please append subject number'
         sys.exit(1)
-    main(sys.argv[1])
+    main(int(sys.argv[1]))
