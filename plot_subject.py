@@ -31,7 +31,7 @@ def read_subject_sizes(subject = subject):
             frames.append(new_frame)
         else:
             cluster_number_prefix = str(subject)+'_'+f.split('_')[-1].split('.')[0]+'_'
-            centroids.add(cluster_number_prefix) 
+            centroids.add(cluster_number_prefix[:-1]) 
             new_frame = pd.read_csv(f,index_col=0,header=None)
             new_frame.index = cluster_number_prefix+new_frame.index.astype(str)        
             frames.append(new_frame)      
