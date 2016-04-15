@@ -224,20 +224,22 @@ def main(subject):
     save_cluster_sizes(cluster_sizes,'cluster_sizes/cluster_sizes_subject'+str(subject)+'_.csv')
     #remove cluster_centers objects from cluster_centers folder. before we rewrite them
     os.system('rm -rf cluster_centers/cluster_centers_subject'+str(subject)+'_*.csv')
-    save_cluster_centers(clusters.centers,'cluster_centers/cluster_centers_subject'+str(subject)+'_.csv')
+    centers_with_index = [[str(subject)+'_'+str(i)]+list(clusters.centers[i])for i in range(len(clusters.centers))]
+    save_cluster_centers(centers_with_index,'cluster_centers/cluster_centers_subject'+str(subject)+'_.csv')
+    del centers_with_index
 
     #get top clusters to split again
-    top_clusters = [item[0] for item in cluster_sizes if item[1]>200]
+    top_clusters = [[item[0],int(item[1]/100)] for item in cluster_sizes]
     #cluster_point_distance.unpersist()
-
 
     #now we got the top 10 clusters. For each cluster, we will split 50 again. 
     for top_cluster in top_clusters:
-        top_data = parsedData.filter(lambda point:clusters.predict(point)==top_cluster)
+        top_data = parsedData.filter(lambda point:clusters.predict(point)==top_cluster[0])
         top_data.persist()
         #now temp_data has all filtered by top_cluster. 
         #Now we are going to cluster it. 
-        top_model = KMeans.train(top_data, sub_k, maxIterations=100,runs=10, initializationMode="k-means||")
+        #top_model = KMeans.train(top_data, sub_k, maxIterations=100,runs=10, initializationMode="k-means||")
+        top_model = KMeans.train(top_data, top_cluster[1], maxIterations=100,runs=10, initializationMode="k-means||")
         
         #top_data_point_distance = top_data.map(lambda point:error_by_center(point,top_model))
         #top_data_point_distance.persist()
@@ -250,15 +252,16 @@ def main(subject):
         #top_sizes are counts by subject. 
         top_sizes = top_ind.countByValue().items()
         #save cluster sizes
-        save_cluster_sizes(top_sizes,'cluster_sizes/cluster_sizes_subject'+str(subject)+'_'+str(top_cluster)+'.csv')
+        save_cluster_sizes(top_sizes,'cluster_sizes/cluster_sizes_subject'+str(subject)+'_'+str(top_cluster[0])+'.csv')
         #save cluster centers
-        save_cluster_centers(top_model.centers,'cluster_centers/cluster_centers_subject'+str(subject)+'_'+str(top_cluster)+'.csv')
+        centers_with_index = [[str(subject)+'_'+str(top_cluster[0])+'_'+str(i)]+list(top_model.centers[i]) for i in range(len(top_model.centers))]
+        save_cluster_centers(centers_with_index,'cluster_centers/cluster_centers_subject'+str(subject)+'_'+str(top_cluster[0])+'.csv')
         #copied from above for max point to center distance. 
         cluster_point_distance = top_data.map(lambda point:error_by_center(point,top_model))
         #no need to persist because its different for each top cluster
         max_point_distance = cluster_point_distance.reduceByKey(lambda x,y:max(x,y)).collect()
-        save_cluster_sizes(max_point_distance,'max_point_distance/'+str(subject)+'_'+str(top_cluster)+'.csv')
-        print 'finished top cluster',top_cluster
+        save_cluster_sizes(max_point_distance,'max_point_distance/'+str(subject)+'_'+str(top_cluster[0])+'.csv')
+        print 'finished top cluster',top_cluster[0]
         top_data.unpersist() 
 
     #save as text file to clusterCenters in hdfs
