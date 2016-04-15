@@ -123,6 +123,7 @@ def read_files_max(file_paths):
     Return:
         a pandas dataframe of all file_paths
     '''
+    #data frames
     dfs = []
     for file_path in file_paths:
         data = pd.read_csv(file_path,header=None,index_col=0)
