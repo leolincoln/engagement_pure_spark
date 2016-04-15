@@ -18,6 +18,8 @@ def read_subject_sizes(subject = subject):
     #cheange the subject so that it wont check for subject 11 for subject 1
     file_names = find_match('cluster_sizes','cluster_sizes_subject'+str(subject)+'_*.csv')
     frames = []
+    #centroids store the original centroids with no sub cluster, e.g. the main centroids
+    centroids = set([])
     for f in file_names:
         print 'processing',f
         #because the upper clusters are somethingsubjectnumber_.csv
@@ -29,12 +31,12 @@ def read_subject_sizes(subject = subject):
             frames.append(new_frame)
         else:
             cluster_number_prefix = str(subject)+'_'+f.split('_')[-1].split('.')[0]+'_'
+            centroids.add(cluster_prefix) 
             new_frame = pd.read_csv(f,index_col=0,header=None)
             new_frame.index = cluster_number_prefix+new_frame.index.astype(str)        
             frames.append(new_frame)      
             print len(frames)
     allframe =  pd.concat(frames)
-    centroids = set([item.split('_')[0] for item in allframe.index.astype(str) if '_' in item])
     #return allframe
     return allframe.ix[~allframe.index.astype(str).isin(centroids)]
 def get_top_500_sizes(df):
