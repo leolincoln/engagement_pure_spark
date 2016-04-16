@@ -229,11 +229,12 @@ def main(subject):
     del centers_with_index
 
     #get top clusters to split again
-    top_clusters = [[item[0],int(item[1]/100)] for item in cluster_sizes]
+    top_clusters = [[item[0],int(item[1]/100)] for item in cluster_sizes if int(item[1]/100)>1]
     #cluster_point_distance.unpersist()
 
     #now we got the top 10 clusters. For each cluster, we will split 50 again. 
     for top_cluster in top_clusters:
+        print 'processing',top_cluster
         top_data = parsedData.filter(lambda point:clusters.predict(point)==top_cluster[0])
         top_data.persist()
         #now temp_data has all filtered by top_cluster. 
@@ -261,7 +262,7 @@ def main(subject):
         #no need to persist because its different for each top cluster
         max_point_distance = cluster_point_distance.reduceByKey(lambda x,y:max(x,y)).collect()
         save_cluster_sizes(max_point_distance,'max_point_distance/'+str(subject)+'_'+str(top_cluster[0])+'.csv')
-        print 'finished top cluster',top_cluster[0]
+        print 'finished top cluster',top_cluster
         top_data.unpersist() 
 
     #save as text file to clusterCenters in hdfs
