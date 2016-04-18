@@ -16,6 +16,6 @@ export HADOOP_CONF_DIR=/etc/alternatives/hadoop-conf
 /opt/cloudera/parcels/CDH/bin/spark-submit \
 --deploy-mode client \
 --name $2 \
---executor-cores 4 \
---executor-memory 6g \
+--executor-cores 6 \
+--executor-memory 15g \
 $1 $2
