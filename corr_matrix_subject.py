@@ -32,13 +32,8 @@ def get_files(path,template):
     return matches
 
 def is_sub_cluster(file_path,template = None):
-    if template is None:
-        template = '.+\d+_\d+\..+'
-    pattern = re.compile(template)
-    if pattern.match(file_path):
-        return True
-    else:
-        return False
+    return file_path.split('_')[-1]!='.csv'
+
 def get_cluster_name(file_path):
     '''
     we say main# is the main cluster number,
@@ -66,14 +61,24 @@ def sub_numbers(file_path):
         String of cluster number if sub cluster
         None if not
     '''
-    template = '([^0-9]*)(\d+_\d+)(.+)'
+    #cluster_centers_subject0_40_2.csv
+    file_path = os.path.basename(file_path)
+    template = '([^0-9]*)(\d+_\d+_\d+)(.+)'
     pattern = re.compile(template)
     m = pattern.match(file_path)
+    
     if m:
         cluster_number = m.groups()[-2]
         return cluster_number
     else:
-        return None
+        #cluster_centers_subject0_40.csv
+        template = '([^0-9]*)(\d+_\d+)(.+)'
+        pattern=re.compile(template)
+        m = pattern.match(file_path)
+        if m:
+            return m.groups()[-2]
+        else:
+            return None
 def main_number(file_path):
     '''
     e.g. cluster_centers/cluster_centers_subject0_40.csv
@@ -99,7 +104,7 @@ def read_file(file_path):
     Args:
         file_path: the string of file path
     '''
-    data = pd.read_csv(file_path,header=None)
+    data = pd.read_csv(file_path,header=None,index_col=0)
     return data
 
 def read_files_center(file_paths):
@@ -147,20 +152,18 @@ if __name__=='__main__':
    #print 'getting correlation matrix for subject',subject
     template = 'cluster_centers_subject'+str(subject)+'_.*csv'
     file_names = get_files(path,template)
-    data = np.array(read_files_center(file_names))
+    data = read_files_center(file_names)
     
     #obtain 1000*1000 cluster
     top_list = get_top(read_size(subject = subject))
     top_list = list(top_list)
-    cluster_names = []
-    for file_name in file_names:
-        cluster_names.extend(get_cluster_name(file_name))
     template_max = str(subject)+'_.*csv'
     file_names_max = get_files(sys.argv[3],template_max)
     data_max = read_files_max(file_names_max)
+    '''
     #result for top 500 clusters
-    r500 = [[0]*500]*500
-    r500_2 = [[0]*500]*500
+    r500 = [[0]*len(top_list)]*len(top_list)
+    r500_2 = [[0]*len(top_list)]*len(top_list)
     count1 = 0
     count2 = 0
     count3 = 0
@@ -169,10 +172,10 @@ if __name__=='__main__':
             #first get the pairwise enclidean distance
             name_i = top_list[i]
             name_j = top_list[j]
-            data_i = cluster_names.index(name_i)
-            data_j = cluster_names.index(name_j)
-            r500[i][j] = float(np.sqrt(np.sum((data[data_i]-data[data_j])**2))+data_max.ix[name_i]+data_max.ix[name_j])
-            r500_2[i][j] = float(np.sqrt(np.sum((data[data_i]-data[data_j])**2))-data_max.ix[name_i]-data_max.ix[name_j])
+            data_i = data.ix[name_i]
+            data_j = data.ix[name_j]
+            r500[i][j] = float(np.sqrt(np.sum((data_i-data_j)**2))+data_max.ix[name_i]+data_max.ix[name_j])
+            r500_2[i][j] = float(np.sqrt(np.sum((data_i-data_j)**2))-data_max.ix[name_i]-data_max.ix[name_j])
             if r500_2[i][j]>0.000001:
                 count1 += 1 
             #count of values on the right that are smaller than 1.34.
@@ -184,6 +187,7 @@ if __name__=='__main__':
     print subject,',',count1,',',count2,',',count3
     save_matrix_png(r500,'pluses'+str(subject)+'.png')
     save_matrix_png(r500_2,'minuses'+str(subject)+'.png')
+    '''
     
     '''
     result = metrics.pairwise.pairwise_distances(data)

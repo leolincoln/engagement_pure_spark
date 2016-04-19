@@ -194,9 +194,9 @@ def main(subject):
     cluster_point_distance = parsedData.map(lambda point:error_by_center(point,clusters))
     cluster_point_distance.persist()
 
+    os.system('rm -rf max_point_distance/'+str(subject)+'_*.csv')
     max_point_distance = cluster_point_distance.reduceByKey(lambda x,y:max(x,y)).collect()
     save_cluster_sizes(max_point_distance,'max_point_distance/'+str(subject)+'_.csv')
-    os.system('rm -rf max_point_distance/'+str(subject)+'_*.csv')
 
     sum_count_point_distance = cluster_point_distance.combineByKey(lambda value:(value,1.0),lambda x,value:(x[0]+value,x[1]+1), lambda x,y:(x[0]+y[0],x[1]+y[1]))
 
@@ -221,9 +221,9 @@ def main(subject):
     cluster_sizes = cluster_ind.countByValue().items()
     #remove cluster size objects from cluster_sizes folder. 
     os.system('rm -rf cluster_sizes/cluster_sizes_subject'+str(subject)+'_*.csv')
+    os.system('rm -rf cluster_centers/cluster_centers_subject'+str(subject)+'_*.csv')
     save_cluster_sizes(cluster_sizes,'cluster_sizes/cluster_sizes_subject'+str(subject)+'_.csv')
     #remove cluster_centers objects from cluster_centers folder. before we rewrite them
-    os.system('rm -rf cluster_centers/cluster_centers_subject'+str(subject)+'_*.csv')
     centers_with_index = [[str(subject)+'_'+str(i)]+list(clusters.centers[i])for i in range(len(clusters.centers))]
     save_cluster_centers(centers_with_index,'cluster_centers/cluster_centers_subject'+str(subject)+'_.csv')
     del centers_with_index
