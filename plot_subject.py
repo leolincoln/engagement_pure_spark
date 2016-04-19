@@ -74,14 +74,14 @@ def read_subject_sizes(subject = subject):
     allframe =  pd.concat(frames)
     #return allframe
     return allframe.ix[~allframe.index.astype(str).isin(centroids)]
-def get_top_500_sizes(df):
+def get_top_500_sizes(df,l=500):
     '''
     supposed the df was fed by read_subject_sizes where
     1. index should be subject_primarycluster_secondarycluster_number
     2. index should be of type str
 
     '''
-    return list(df.sort_values(1,ascending=False).head(500).index)
+    return list(df.sort_values(1,ascending=False).head(l).index)
 if __name__=='__main__':
     print 'subject number:', sys.argv[1]
     data = read_subject_sizes(subject = sys.argv[1])

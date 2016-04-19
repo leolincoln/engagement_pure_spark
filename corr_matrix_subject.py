@@ -155,7 +155,8 @@ if __name__=='__main__':
     data = read_files_center(file_names)
     
     #obtain 1000*1000 cluster
-    top_list = get_top(read_size(subject = subject))
+    #top_list = get_top(read_size(subject = subject))
+    top_list = read_size(subject = subject).index
     top_list = list(top_list)
     template_max = str(subject)+'_.*csv'
     file_names_max = get_files(sys.argv[3],template_max)
