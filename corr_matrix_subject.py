@@ -160,7 +160,6 @@ if __name__=='__main__':
     template_max = str(subject)+'_.*csv'
     file_names_max = get_files(sys.argv[3],template_max)
     data_max = read_files_max(file_names_max)
-    '''
     #result for top 500 clusters
     r500 = [[0]*len(top_list)]*len(top_list)
     r500_2 = [[0]*len(top_list)]*len(top_list)
@@ -187,7 +186,6 @@ if __name__=='__main__':
     print subject,',',count1,',',count2,',',count3
     save_matrix_png(r500,'pluses'+str(subject)+'.png')
     save_matrix_png(r500_2,'minuses'+str(subject)+'.png')
-    '''
     
     '''
     result = metrics.pairwise.pairwise_distances(data)
