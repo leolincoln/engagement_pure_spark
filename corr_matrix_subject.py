@@ -177,6 +177,7 @@ if __name__=='__main__':
     max_center_distance = 0
     max_i = ''
     max_j = ''
+    '''
     for i in xrange(len(r500)):
         for j in xrange(len(r500)):
             #first get the pairwise enclidean distance
@@ -204,8 +205,9 @@ if __name__=='__main__':
     print 'center_distance',max_center_distance,'max_i',float(data_max.ix[max_i]),'max_j',float(data_max.ix[max_j])
     save_matrix_png(r500,'pluses'+str(subject)+'.png')
     save_matrix_png(r500_2,'minuses'+str(subject)+'.png')
-    
+    ''' 
     '''
+
     result = metrics.pairwise.pairwise_distances(data)
     result2 = copy.copy(result)
     count1 = 0
