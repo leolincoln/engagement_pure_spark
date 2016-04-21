@@ -11,8 +11,6 @@ from plot_subject import get_top_500_sizes as get_top
 import copy
 def save_matrix_png(data,filename):
     plt.cla()
-    print "DEBUG: min1d", min(data)
-    print "DEBUG: max1d", max(data)
     vmin = min(map(min,data))
     vmax = max(map(max,data))
     print vmin, vmax
@@ -177,7 +175,7 @@ if __name__=='__main__':
     max_center_distance = 0
     max_i = ''
     max_j = ''
-    '''
+    
     for i in xrange(len(r500)):
         for j in xrange(len(r500)):
             #first get the pairwise enclidean distance
@@ -187,12 +185,23 @@ if __name__=='__main__':
             data_j = data.ix[name_j]
             
             centroid_distance = float(np.sqrt(np.sum((data_i-data_j)**2)))
+            
             if centroid_distance>max_center_distance:
                 max_center_distance = centroid_distance
                 max_i = name_i
                 max_j = name_j
+                max_plus = centroid_distance+float(data_max.ix[name_i]+data_max.ix[name_j])
+                max_minus = centroid_distance-float(data_max.ix[name_i])-float(data_max.ix[name_j])
             r500[i][j]=centroid_distance+float(data_max.ix[name_i]+data_max.ix[name_j])
             r500_2[i][j] = centroid_distance-float(data_max.ix[name_i])-float(data_max.ix[name_j])
+    
+    #print subject,',',count1,',',count2,',',count3
+    print 'center_distance',max_center_distance,'max_i',max_i,float(data_max.ix[max_i]),'max_j',max_j,float(data_max.ix[max_j]),'max_plus',max_plus,'max_minus',max_minus
+    save_matrix_png(r500,'pluses'+str(subject)+'.png')
+    save_matrix_png(r500_2,'minuses'+str(subject)+'.png')
+    
+    '''
+
             if r500_2[i][j]>0.000001:
                 count1 += 1 
             #count of values on the right that are smaller than 1.34.
@@ -201,12 +210,8 @@ if __name__=='__main__':
             #the count of values on the left that are larger than 1.48.
             if r500_2[i][j]>1.48:
                 count3 += 1
-    print subject,',',count1,',',count2,',',count3
-    print 'center_distance',max_center_distance,'max_i',float(data_max.ix[max_i]),'max_j',float(data_max.ix[max_j])
-    save_matrix_png(r500,'pluses'+str(subject)+'.png')
-    save_matrix_png(r500_2,'minuses'+str(subject)+'.png')
-    ''' 
-    '''
+
+
 
     result = metrics.pairwise.pairwise_distances(data)
     result2 = copy.copy(result)
