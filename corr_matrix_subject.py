@@ -11,11 +11,11 @@ from plot_subject import get_top_500_sizes as get_top
 import copy
 def save_matrix_png(data,filename):
     plt.cla()
-    vmin = min(map(min,data))
-    vmax = max(map(max,data))
-    print vmin, vmax
+    #vmin = min(map(min,data))
+    #vmax = max(map(max,data))
+    #print vmin, vmax
     plt.matshow(data)
-    plt.clim(min(min(data)),max(max(data)))
+    #plt.clim(min(min(data)),max(max(data)))
     plt.colorbar()
     plt.savefig(filename)
 
@@ -167,8 +167,8 @@ if __name__=='__main__':
     file_names_max = get_files(sys.argv[3],template_max)
     data_max = read_files_max(file_names_max)
     #result for top 500 clusters
-    r500 = [[0]*len(top_list)]*len(top_list)
-    r500_2 = [[0]*len(top_list)]*len(top_list)
+    r500 = np.zeros((len(top_list),len(top_list)),dtype=np.float)
+    r500_2 = np.zeros((len(top_list),len(top_list)),dtype=np.float)
     count1 = 0
     count2 = 0
     count3 = 0
@@ -197,6 +197,8 @@ if __name__=='__main__':
     
     #print subject,',',count1,',',count2,',',count3
     print 'center_distance',max_center_distance,'max_i',max_i,float(data_max.ix[max_i]),'max_j',max_j,float(data_max.ix[max_j]),'max_plus',max_plus,'max_minus',max_minus
+    np.savetxt('pluses'+str(subject)+'.csv',r500)
+    np.savetxt('minuses'+str(subject)+'.csv',r500_2)
     save_matrix_png(r500,'pluses'+str(subject)+'.png')
     save_matrix_png(r500_2,'minuses'+str(subject)+'.png')
     
