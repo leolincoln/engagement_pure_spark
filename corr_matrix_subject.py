@@ -1,4 +1,6 @@
 #running command: python corr_matrix_subject.py 0 cluster_centers/ max_point_distance/
+import matplotlib
+matplotlib.use('TkAgg')
 import numpy as np
 import sys,os,pandas,re
 import pandas as pd
@@ -169,7 +171,10 @@ if __name__=='__main__':
     #result for top 500 clusters
     r500 = np.zeros((len(top_list),len(top_list)),dtype=np.float)
     r500_2 = np.zeros((len(top_list),len(top_list)),dtype=np.float)
-    count1 = 0
+    count1_1 = 0
+    count1_2 = 0
+    count2_1 = 0
+    count2_2 = 0
     count2 = 0
     count3 = 0
     max_center_distance = 0
@@ -195,7 +200,17 @@ if __name__=='__main__':
             r500[i][j]=centroid_distance+float(data_max.ix[name_i]+data_max.ix[name_j])
             r500_2[i][j] = centroid_distance-float(data_max.ix[name_i])-float(data_max.ix[name_j])
     
-    #print subject,',',count1,',',count2,',',count3
+            #count of values on the right that are smaller than 1.34.
+            if centroid_distance<=1.34:
+                count1_1 += 1
+            else:
+                count1_2+=1
+            if centroid_distance <=1.48:
+                count2_1 +=1
+            else:
+                count2_2 +=1
+            #the count of values on the left that are larger than 1.48.
+    print subject,',',count1_1,',',count1_2,',',count2_1,',',count2_2
     print 'center_distance',max_center_distance,'max_i',max_i,float(data_max.ix[max_i]),'max_j',max_j,float(data_max.ix[max_j]),'max_plus',max_plus,'max_minus',max_minus
     np.savetxt('pluses'+str(subject)+'.csv',r500)
     np.savetxt('minuses'+str(subject)+'.csv',r500_2)
