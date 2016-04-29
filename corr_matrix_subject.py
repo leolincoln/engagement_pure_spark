@@ -1,12 +1,14 @@
 #running command: python corr_matrix_subject.py 0 cluster_centers/ max_point_distance/
-import matplotlib
-matplotlib.use('TkAgg')
+import platform
+if platform.system()!='Linux':
+    import matplotlib
+    matplotlib.use('TkAgg')
 import numpy as np
 import sys,os,pandas,re
 import pandas as pd
 from os.path import join,getsize
 from pandas import Series,DataFrame
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn import metrics
 from plot_subject import read_subject_sizes as read_size
 from plot_subject import get_top_500_sizes as get_top
@@ -163,11 +165,18 @@ if __name__=='__main__':
     
     #obtain 1000*1000 cluster
     #top_list = get_top(read_size(subject = subject))
+
+    #get the top sizes cluster name lists.
     top_list = read_size(subject = subject).index
     top_list = list(top_list)
+    
+    #tempalte for max distance
     template_max = str(subject)+'_.*csv'
+    #get all files for max distance
     file_names_max = get_files(sys.argv[3],template_max)
+    #read all max distance files indexed by cluster names
     data_max = read_files_max(file_names_max)
+    
     #result for top 500 clusters
     r500 = np.zeros((len(top_list),len(top_list)),dtype=np.float)
     r500_2 = np.zeros((len(top_list),len(top_list)),dtype=np.float)

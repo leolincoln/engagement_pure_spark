@@ -1,3 +1,7 @@
+import platform
+if platform.system()!='Linux':
+    import matplotlib
+    matplotlib.use('TkAgg')
 from matplotlib import pylab as plt
 import sys
 import pandas as pd
