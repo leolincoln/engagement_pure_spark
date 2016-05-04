@@ -61,7 +61,7 @@ if __name__=='__main__':
     for i in top_list:
         data_dict[i] = np.array(list(data.ix[i]))
     del data
-    #now data_dict has index -> list where index is centroid name, list is a list
+    #now data_dict has index -> list where index is centroid name, list is a list of data points
 
     #read data from hdfs
     sc = SparkContext()
