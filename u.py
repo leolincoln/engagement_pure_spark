@@ -2,6 +2,7 @@ import platform
 if platform.system()!='Linux':
     import matplotlib
     matplotlib.use('TkAgg')
+from pyspark import SparkContext
 import numpy as np
 import sys,os,re
 import pandas as pd
@@ -21,12 +22,17 @@ def cluster_predict(data_dict,data_in):
     '''
     
     #find the smalleast distance from data_dict to data_in
-    result = test.keys()[0]
-    data_in = np.array(data_in)
-    min_dis = sum((data_in-test[result])**2)
+    result = data_dict.keys()[0]
+    data_in = np.array(data_in).astype(float)
+    print 'in cluster_predict'
+    print '*'*20
+    print len(data_in)
+    print len(data_dict[result])
+    print '*'*20
+    min_dis = sum((data_in-data_dict[result])**2)
 
     for item in data_dict.keys():
-        temp = sum((data_in-test[i])**2)
+        temp = sum((data_in-data_dict[item])**2)
         if temp < min_dis:
             min_dis = temp
             result = item
@@ -64,13 +70,13 @@ def minusminus(x,data_dict,sorted_values):
     sorted_values: the centroid_name->sorted list of data by distance
 
     '''
-    c1 = x[0][0]
-    c2 = x[0][1]
+    c1 = x[0][0][0]
+    c2 = x[0][1][0]
     data_c1 = data_dict[c1]
     data_c2 = data_dict[c2]
     #U(ab) = max(||X-Ca||), (Ca-Cb)*(x-Ca)>0
     key = (c1,c2)
-    x_list = sorted_values.filter(lambda x:x[0]==c1).collect()[1]
+    x_list = x[0][0][1] 
     for data in x_list:
         if sum((data_c1-data_c2)*(data-data_c1))>0:
             return (key,np.sqrt(sum((data-data_c1)**2)))
@@ -85,7 +91,7 @@ def calculate_heatmap(x,data_dict,u):
     data_c2 = data_dict[c2]
     #centroid distance (a,b) - u(ab) - u(ba)
     key = (c1,c2)
-    return (key,np.sqrt(sum(data_c1-data_c2))-u[(c1,c2)]-u[(c2,c1)])
+    return (key,np.sqrt(sum((data_c1-data_c2)**2))-u[(c1,c2)]-u[(c2,c1)])
 if __name__=='__main__':
     if len(sys.argv)<1:
         print 'ERROR: sys.argv length'
@@ -120,24 +126,25 @@ if __name__=='__main__':
     
     #get subject data from hdfs
     subject_data = lines.filter(lambda x:str(x.split(';')[3])==str(subject))
+    test = subject_data.take(1)
+    print test,len(test[0].split(';')[4].split(','))
+    print len(data_dict.values()[0])
     subject_value = subject_data.map(lambda x:np.array(x.split(';')[4].split(',')).astype(float))
 
     #map data to different centers
     values = subject_value.map(lambda x:(cluster_predict(data_dict,x),[x]))
     grouped_values = values.reduceByKey(lambda x,y:group_list(x,y))
     sorted_values = grouped_values.map(lambda x:sort_list(x,data_dict))
-    sorted_values.persist()
-    
-    centroids_rdd = sc.parallelize(top_list)
-    cross_centroids = centroids_rdd.cartesian(centroids_rdd)
-    u = cross_centroids.map(lambda x:minusminus(x,data_dict,sorted_values))
+    cross_centroids = sorted_values.cartesian(sorted_values) 
+    u = cross_centroids.map(lambda x:minusminus(x,data_dict))
     u_dict = {}
     for element in u.collect():
         u_dict[element[0]] = element[1]
     #centroid distance (a,b) - u(ab) - u(ba)
-    heatmap = cross_centroids.map(lambda x:calculate_heatmap(x),data_dict,u_dict)
+    heatmap = cross_centroids.map(lambda x:calculate_heatmap(x,data_dict,u_dict))
+            
     r500 = np.zeros((len(top_list),len(top_list)),dtype=np.float)
-    for element in heatmap.collect:
+    for element in heatmap.collect():
         c1 = element[0][0]
         c2 = element[0][1]
         i = top_list.index(c1)

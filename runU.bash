@@ -17,6 +17,6 @@ export HADOOP_CONF_DIR=/etc/alternatives/hadoop-conf
 --deploy-mode client \
 --name $2 \
 --executor-cores 6 \
---executor-memory 15g \
+--executor-memory 22g \
 --py-files corr_matrix_subject.py \
-$1 $2
+$1 $2 $3 $4

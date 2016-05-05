@@ -3,6 +3,7 @@ import platform
 if platform.system()!='Linux':
     import matplotlib
     matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 import numpy as np
 import sys,os,pandas,re
 import pandas as pd
@@ -183,8 +184,9 @@ def read_files_center(file_paths):
     dfs = []
     for file_path in file_paths:
         data = read_file(file_path)
+        #TODO: figure out why i did not put an extra ','
         #remove the last None because I put an extra ',' at the end of each line
-        data = data[data.columns[:-1]]
+        #data = data[data.columns[:-1]]
         dfs.append(data)
     return pd.concat(dfs)
 def read_files_max(file_paths):
