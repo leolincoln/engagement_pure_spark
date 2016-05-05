@@ -6,7 +6,11 @@ import numpy as np
 import sys,os,re
 import pandas as pd
 import matplotlib.pyplot as plt
-from corr_matrix_subject import read_files_center,get_files,read_size
+from corr_matrix_subject import read_files_center,get_files,read_size,save_matrix_png
+
+'''
+I am lazy as not wanting to create pakage for my previous programs. 
+'''
 
 def cluster_predict(data_dict,data_in):
     '''
@@ -40,7 +44,48 @@ def value_pairs(line):
     subject = values[3]
     timeseries = values[4]
     return ((x,y,z),{subject:timeseries})
+def group_list(x,y):
+    x.extend(y)
+    return x
+def sort_list(x,data_dict):
+    '''
+    Params:
+        x: the rdd element, x[0] is the centroid_name, x[1] is the list of real data 
+        data_dict: centroid_name-> actual_centroid_data
+    '''
+    center = data_dict[x[0]]
+    sorted_list = sorted(x[1],key=lambda x:sum((x-center)**2),reverse=True)
+    return (x[0],sorted_list)
 
+def minusminus(x,data_dict,sorted_values):
+    '''
+    x: 2 centroid names
+    data_dict: the centroid_name->centroid_data dict
+    sorted_values: the centroid_name->sorted list of data by distance
+
+    '''
+    c1 = x[0][0]
+    c2 = x[0][1]
+    data_c1 = data_dict[c1]
+    data_c2 = data_dict[c2]
+    #U(ab) = max(||X-Ca||), (Ca-Cb)*(x-Ca)>0
+    key = (c1,c2)
+    x_list = sorted_values.filter(lambda x:x[0]==c1).collect()[1]
+    for data in x_list:
+        if sum((data_c1-data_c2)*(data-data_c1))>0:
+            return (key,np.sqrt(sum((data-data_c1)**2)))
+    return (key,-5)
+def calculate_heatmap(x,data_dict,u):
+    '''
+    
+    '''
+    c1 = x[0][0]
+    c2 = x[0][1]
+    data_c1 = data_dict[c1]
+    data_c2 = data_dict[c2]
+    #centroid distance (a,b) - u(ab) - u(ba)
+    key = (c1,c2)
+    return (key,np.sqrt(sum(data_c1-data_c2))-u[(c1,c2)]-u[(c2,c1)])
 if __name__=='__main__':
     if len(sys.argv)<1:
         print 'ERROR: sys.argv length'
@@ -57,11 +102,12 @@ if __name__=='__main__':
     template = 'cluster_centers_subject'+str(subject)+'_.*csv'
     file_names = get_files(data_path,template)
     data = read_files_center(file_names)
+    #data_dict is the centroids dictionary
     data_dict = {}
     for i in top_list:
-        data_dict[i] = np.array(list(data.ix[i]))
+        data_dict[i] = np.array(list(data.ix[i])).astype(float)
     del data
-    #now data_dict has index -> list where index is centroid name, list is a list of data points
+    #now data_dict has index -> np float array where index is centroid name, list is a list of data points
 
     #read data from hdfs
     sc = SparkContext()
@@ -74,7 +120,32 @@ if __name__=='__main__':
     
     #get subject data from hdfs
     subject_data = lines.filter(lambda x:str(x.split(';')[3])==str(subject))
+    subject_value = subject_data.map(lambda x:np.array(x.split(';')[4].split(',')).astype(float))
+
+    #map data to different centers
+    values = subject_value.map(lambda x:(cluster_predict(data_dict,x),[x]))
+    grouped_values = values.reduceByKey(lambda x,y:group_list(x,y))
+    sorted_values = grouped_values.map(lambda x:sort_list(x,data_dict))
+    sorted_values.persist()
     
-    
-    values = lines.map(value_pairs)
+    centroids_rdd = sc.parallelize(top_list)
+    cross_centroids = centroids_rdd.cartesian(centroids_rdd)
+    u = cross_centroids.map(lambda x:minusminus(x,data_dict,sorted_values))
+    u_dict = {}
+    for element in u.collect():
+        u_dict[element[0]] = element[1]
+    #centroid distance (a,b) - u(ab) - u(ba)
+    heatmap = cross_centroids.map(lambda x:calculate_heatmap(x),data_dict,u_dict)
+    r500 = np.zeros((len(top_list),len(top_list)),dtype=np.float)
+    for element in heatmap.collect:
+        c1 = element[0][0]
+        c2 = element[0][1]
+        i = top_list.index(c1)
+        j = top_list.index(c2)
+        r500[i][j] = element[1]
+
+    save_matrix_png(r500,str(subject)+'.png')
+
+
+
 

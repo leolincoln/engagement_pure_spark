@@ -6,7 +6,6 @@ from matplotlib import pylab as plt
 import sys
 import pandas as pd
 from glob import glob
-subject = 7
 import fnmatch
 import os
 #find_match('src','*.csv')
