@@ -60,23 +60,23 @@ def sort_list(x,data_dict):
         data_dict: centroid_name-> actual_centroid_data
     '''
     center = data_dict[x[0]]
-    sorted_list = sorted(x[1],key=lambda x:sum((x-center)**2),reverse=True)
+    sorted_list = sorted(x[1],key=lambda el:sum((el-center)**2),reverse=True)
     return (x[0],sorted_list)
 
-def minusminus(x,data_dict,sorted_values):
+def minusminus(x,data_dict):
     '''
     x: 2 centroid names
     data_dict: the centroid_name->centroid_data dict
     sorted_values: the centroid_name->sorted list of data by distance
 
     '''
-    c1 = x[0][0][0]
-    c2 = x[0][1][0]
+    c1 = x[0][0]
+    c2 = x[1][0]
     data_c1 = data_dict[c1]
     data_c2 = data_dict[c2]
     #U(ab) = max(||X-Ca||), (Ca-Cb)*(x-Ca)>0
     key = (c1,c2)
-    x_list = x[0][0][1] 
+    x_list = x[0][1] 
     for data in x_list:
         if sum((data_c1-data_c2)*(data-data_c1))>0:
             return (key,np.sqrt(sum((data-data_c1)**2)))
@@ -86,7 +86,7 @@ def calculate_heatmap(x,data_dict,u):
     
     '''
     c1 = x[0][0]
-    c2 = x[0][1]
+    c2 = x[1][0]
     data_c1 = data_dict[c1]
     data_c2 = data_dict[c2]
     #centroid distance (a,b) - u(ab) - u(ba)
@@ -136,11 +136,13 @@ if __name__=='__main__':
     grouped_values = values.reduceByKey(lambda x,y:group_list(x,y))
     sorted_values = grouped_values.map(lambda x:sort_list(x,data_dict))
     cross_centroids = sorted_values.cartesian(sorted_values) 
+    print cross_centroids.take(1)[0]
     u = cross_centroids.map(lambda x:minusminus(x,data_dict))
     u_dict = {}
     for element in u.collect():
         u_dict[element[0]] = element[1]
     #centroid distance (a,b) - u(ab) - u(ba)
+    print u_dict[u_dict.keys()[0]],u_dict.keys()[0]
     heatmap = cross_centroids.map(lambda x:calculate_heatmap(x,data_dict,u_dict))
             
     r500 = np.zeros((len(top_list),len(top_list)),dtype=np.float)

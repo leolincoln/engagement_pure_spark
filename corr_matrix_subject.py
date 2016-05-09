@@ -280,8 +280,8 @@ if __name__=='__main__':
             #the count of values on the left that are larger than 1.48.
     print subject,',',count1_1,',',count1_2,',',count2_1,',',count2_2
     print 'center_distance',max_center_distance,'max_i',max_i,float(data_max.ix[max_i]),'max_j',max_j,float(data_max.ix[max_j]),'max_plus',max_plus,'max_minus',max_minus
-    np.savetxt('pluses'+str(subject)+'.csv',r500)
-    np.savetxt('minuses'+str(subject)+'.csv',r500_2)
+    #np.savetxt('pluses'+str(subject)+'.csv',r500)
+    #np.savetxt('minuses'+str(subject)+'.csv',r500_2)
     save_matrix_png(r500,'pluses'+str(subject)+'.png')
     save_matrix_png(r500_2,'minuses'+str(subject)+'.png')
     
