@@ -1,0 +1,3 @@
+https://github.com/apache/spark/blob/master/python/pyspark/mllib/__init__.py
+
+Replace the init code as the old code is bad. Since we are not going to be upgrade to 1.6.1 any time sooner
