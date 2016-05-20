@@ -91,7 +91,10 @@ def calculate_heatmap(x,data_dict,u):
     data_c2 = data_dict[c2]
     #centroid distance (a,b) - u(ab) - u(ba)
     key = (c1,c2)
-    return (key,np.sqrt(sum((data_c1-data_c2)**2))-u[(c1,c2)]-u[(c2,c1)])
+    if c1!=c2:
+        return (key,np.sqrt(sum((data_c1-data_c2)**2))-u[(c1,c2)]-u[(c2,c1)])
+    else:
+        return (key,0)
 if __name__=='__main__':
     if len(sys.argv)<1:
         print 'ERROR: sys.argv length'
@@ -123,38 +126,73 @@ if __name__=='__main__':
 
     #reading data from hdfs
     lines = sc.textFile(hdfsPrefix+file_path1)
+    #lines.persist()
+    #lines.collect()
+    #lines.repartition(1000)
     
     #get subject data from hdfs
     subject_data = lines.filter(lambda x:str(x.split(';')[3])==str(subject))
-    test = subject_data.take(1)
-    print test,len(test[0].split(';')[4].split(','))
-    print len(data_dict.values()[0])
+    #test = subject_data.take(1)
+    #subject_data.persist()
+    #subject_data.collect()
+    
+    #lines.unpersist()
+    #del lines
+    
+    #print test,len(test[0].split(';')[4].split(','))
+    #print len(data_dict.values()[0])
     subject_value = subject_data.map(lambda x:np.array(x.split(';')[4].split(',')).astype(float))
+    #subject_value.persist()
+    #subject_value.collect()
+    
+    #subject_data.unpersist()
+    #del subject_data
 
     #map data to different centers
     values = subject_value.map(lambda x:(cluster_predict(data_dict,x),[x]))
+    #values.persist()
+    #values.collect()
+
+    #subject_value.unpersist()
+    #del subject_value
+    
     grouped_values = values.reduceByKey(lambda x,y:group_list(x,y))
+    #grouped_values.persist()
+    #grouped_values.collect()
+
+    #values.unpersist()
+    #del values
+    
+    
     sorted_values = grouped_values.map(lambda x:sort_list(x,data_dict))
+    #sorted_values.persist()
+    #sorted_values.collect()
+
+    #grouped_values.unpersist()
+    #del grouped_values
+    
     cross_centroids = sorted_values.cartesian(sorted_values) 
-    print cross_centroids.take(1)[0]
+    #print cross_centroids.take(1)[0]
     u = cross_centroids.map(lambda x:minusminus(x,data_dict))
+    #u.persist()
     u_dict = {}
     for element in u.collect():
         u_dict[element[0]] = element[1]
     #centroid distance (a,b) - u(ab) - u(ba)
     print u_dict[u_dict.keys()[0]],u_dict.keys()[0]
     heatmap = cross_centroids.map(lambda x:calculate_heatmap(x,data_dict,u_dict))
-            
+    heatmap.persist()        
     r500 = np.zeros((len(top_list),len(top_list)),dtype=np.float)
     for element in heatmap.collect():
         c1 = element[0][0]
         c2 = element[0][1]
         i = top_list.index(c1)
         j = top_list.index(c2)
+
         r500[i][j] = element[1]
 
     save_matrix_png(r500,str(subject)+'.png')
-
+    np.savetxt('heat2_'+str(subject)+'.csv',r500)
 
 
 

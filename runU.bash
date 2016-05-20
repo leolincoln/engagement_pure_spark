@@ -16,7 +16,10 @@ export HADOOP_CONF_DIR=/etc/alternatives/hadoop-conf
 /opt/cloudera/parcels/CDH/bin/spark-submit \
 --deploy-mode client \
 --name $2 \
---executor-cores 6 \
---executor-memory 22g \
+--num-executors 3 \
+--executor-cores 5 \
+--executor-memory 20g \
+--conf "spark.kryoserializer.buffer.max.mb=256" \
+--conf "spark.executor.extraJavaOptions=-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:MaxDirectMemorySize=512m" \
 --py-files corr_matrix_subject.py \
 $1 $2 $3 $4
