@@ -6,7 +6,9 @@ import pandas as pd
 data = np.loadtxt('heat3_19.csv')
 #flatten data
 data = np.ravel(data)
+#filter data
+data = data[data<2]
 pd_data = pd.DataFrame(data)
 plt.figure()
 pd_data.plot.hist(bins=20)
-plt.savefig('test3.png')
+plt.savefig('heat3_test2.png')
