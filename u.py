@@ -163,7 +163,6 @@ if __name__=='__main__':
     #values.unpersist()
     #del values
     
-    
     sorted_values = grouped_values.map(lambda x:sort_list(x,data_dict))
     #sorted_values.persist()
     #sorted_values.collect()
