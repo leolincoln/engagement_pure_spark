@@ -50,8 +50,13 @@ if __name__=='__main__':
 
     for i in xrange(len(u_temp)):
         for j in xrange(len(u_temp[0])):
-            data_c1 = data_dict[top_list[i]]
-            data_c2 = data_dict[top_list[j]]
+            c1 = top_list[i]
+            c2 = top_list[j]
+            if c1==c2:
+                u[i][j]=0
+                continue
+            data_c1 = data_dict[c1]
+            data_c2 = data_dict[c2]
             u_temp_data = u_temp[i][j]
             u[i][j]= u_temp_data-np.sqrt(sum((data_c1-data_c2)**2))+data_max.ix[top_list[i]]+data_max.ix[top_list[j]]
     np.savetxt('heat3_'+str(subject)+'.csv',u)

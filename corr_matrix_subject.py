@@ -217,7 +217,7 @@ if __name__=='__main__':
     subject = sys.argv[1]
     path = sys.argv[2]
    
-   #print 'getting correlation matrix for subject',subject
+    #print 'getting correlation matrix for subject',subject
     template = 'cluster_centers_subject'+str(subject)+'_.*csv'
     file_names = get_files(path,template)
     data = read_files_center(file_names)
